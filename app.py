@@ -12,14 +12,25 @@ print("API_KEY=",API_KEY)
 
 FORECAST_API = 'https://api.openweathermap.org/data/2.5/forecast'
 
-@app.route('/forecast')
+
+@app.route('/forecast', methods=["GET","POST"])
 def forecast():
-    params = {
-        'appid' : API_KEY,
-        'q' : 'Kyoto',
-        'units' : 'metric',
-        'lang' : 'ja'
-    }
+    if request.method == 'POST':
+        placeInput = request.form["place"]
+        params = {
+            'appid' : API_KEY,
+            'q' : placeInput,
+            'units' : 'metric',
+            'lang' : 'ja'
+        }
+    else:
+        params = {
+            'appid' : API_KEY,
+            'q' : "tokyo",
+            'units' : 'metric',
+            'lang' : 'ja'
+        }
+
     url = FORECAST_API + '?' + urllib.parse.urlencode(params)
     req = urllib.request.Request(url)
     res = urllib.request.urlopen(req)
@@ -36,8 +47,11 @@ def forecast():
             "pressure" : api_data["main"]["pressure"],
             "icon" : api_data["weather"][0]["icon"],
         })
-
-    return render_template('forecast.html',forecasts=forecasts)
+    if request.method == 'POST':
+        return render_template('forecast.html',forecasts=forecasts, place=placeInput)
+    else:
+        return render_template('forecast.html',forecasts=forecasts)
+    
 
 @app.route('/')
 def hello():
